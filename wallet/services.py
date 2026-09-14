@@ -316,24 +316,24 @@ def deduct_locked_funds(
         return tx
 
 
-def create_demo_deposit(user, amount: Decimal) -> WalletTransaction:
+def create_demo_deposit(user, amount: Decimal, note: str = "") -> WalletTransaction:
     """
     Simulates adding demo credits to the user's demo wallet.
-    Only permitted demo amounts are accepted.
+    Accepts any positive demo amount between 1.00 and 100,000.00 DUSD.
     """
-    amount = Decimal(str(amount))
-    valid_amounts = [Decimal("10.00"), Decimal("50.00"), Decimal("100.00"), Decimal("500.00"), Decimal("1000.00"), Decimal("5000.00"), Decimal("10000.00")]
-    if amount not in valid_amounts:
-        raise ValidationError(f"Invalid demo amount. Choose from: {', '.join(str(a) for a in valid_amounts)} DUSD.")
+    amount = Decimal(str(amount)).quantize(Decimal("0.01"))
+    if amount < Decimal("1.00") or amount > Decimal("100000.00"):
+        raise ValidationError("Demo deposit amount must be between 1.00 and 100,000.00 DUSD.")
 
     wallet = get_or_create_wallet(user)
     idempotency_key = f"demo-deposit-{user.id}-{int(time.time()*1000)}-{secrets.token_hex(4)}"
 
+    desc_detail = f" ({note.strip()})" if note and note.strip() else ""
     return credit_wallet(
         wallet=wallet,
         amount=amount,
         transaction_type="DEMO_DEPOSIT",
-        description=f"[DEMO] Self-service test credit deposit of {amount} DUSD",
+        description=f"[DEMO] Self-service test credit deposit of {amount} DUSD{desc_detail}",
         reference_type="User",
         reference_id=str(user.id),
         idempotency_key=idempotency_key,
