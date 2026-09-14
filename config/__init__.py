@@ -10,3 +10,5 @@ try:
     pymysql.install_as_MySQLdb()
 except ImportError:
     pass
+
+__version__ = "2.0.0-dev"
