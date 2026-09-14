@@ -18,11 +18,12 @@
 <body>
 
   <!-- Navigation Bar -->
-  <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm sticky-top">
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm sticky-top border-bottom border-warning">
     <div class="container">
       <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="{% url 'home' %}">
-        <i class="bi bi-shield-lock-fill fs-4"></i>
-        <span>AuthPortal</span>
+        <i class="bi bi-graph-up-arrow fs-4 text-warning"></i>
+        <span>JBP Simulator</span>
+        <span class="badge bg-warning text-dark fs-6 ms-1">DEMO 2.0</span>
       </a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain" aria-controls="navbarMain" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
@@ -35,11 +36,27 @@
           </li>
           {% if user.is_authenticated %}
             <li class="nav-item">
-              <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'dashboard' %}">Dashboard</a>
+              <a class="nav-link" href="{% url 'dashboard:home' %}"><i class="bi bi-speedometer2 me-1"></i>Dashboard</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link {% if request.resolver_match.url_name == 'profile' %}active{% endif %}" href="{% url 'profile' %}">Profile</a>
+              <a class="nav-link" href="{% url 'rewards:positions' %}"><i class="bi bi-pie-chart me-1"></i>Positions (2%)</a>
             </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'wallet:detail' %}"><i class="bi bi-wallet2 me-1"></i>Demo Wallet</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'referrals:network' %}"><i class="bi bi-people me-1"></i>Referrals</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'withdrawals:list' %}"><i class="bi bi-arrow-up-right-circle me-1"></i>Withdrawals</a>
+            </li>
+            {% if user.is_staff %}
+              <li class="nav-item">
+                <a class="nav-link text-warning fw-semibold" href="{% url 'dashboard:admin_sim_control' %}">
+                  <i class="bi bi-sliders me-1"></i>Sim Control
+                </a>
+              </li>
+            {% endif %}
           {% endif %}
         </ul>
 
@@ -89,6 +106,9 @@
 
   <!-- Main Content Container -->
   <main class="py-4">
+    <div class="container">
+      {% include "includes/demo_warning.html" %}
+    </div>
     {% block content %}{% endblock %}
   </main>
 

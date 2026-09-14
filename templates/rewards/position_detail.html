@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block title %}Position #{{ position.id }} — JustBeenPaid Simulator{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h3 class="fw-bold mb-1">Position #{{ position.id }} Overview</h3>
+      <p class="text-muted mb-0">Plan: {{ position.plan.name }} &bull; Allocated on {{ position.created_at|date:"M d, Y" }}</p>
+    </div>
+    <a href="{% url 'rewards:positions' %}" class="btn btn-outline-secondary">
+      &larr; Back to Positions
+    </a>
+  </div>
+
+  <div class="row g-4 mb-4">
+    <div class="col-md-4">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-header bg-dark text-white py-3">
+          <h6 class="fw-bold mb-0 text-warning">Position Specs</h6>
+        </div>
+        <div class="card-body">
+          <ul class="list-group list-group-flush small">
+            <li class="list-group-item d-flex justify-content-between px-0">
+              <span class="text-muted">Status:</span>
+              {% if position.status == 'ACTIVE' %}
+                <span class="badge bg-success">Active</span>
+              {% elif position.status == 'COMPLETED' %}
+                <span class="badge bg-secondary">Completed</span>
+              {% else %}
+                <span class="badge bg-danger">{{ position.status }}</span>
+              {% endif %}
+            </li>
+            <li class="list-group-item d-flex justify-content-between px-0">
+              <span class="text-muted">Allocated Demo Principal:</span>
+              <strong>{{ position.demo_amount }} DUSD</strong>
+            </li>
+            <li class="list-group-item d-flex justify-content-between px-0">
+              <span class="text-muted">Daily Reward Rate:</span>
+              <strong class="text-success">2.00% / day</strong>
+            </li>
+            <li class="list-group-item d-flex justify-content-between px-0">
+              <span class="text-muted">Daily Reward Amount:</span>
+              <strong class="text-success">+{{ position.daily_reward_amount }} DUSD</strong>
+            </li>
+            <li class="list-group-item d-flex justify-content-between px-0">
+              <span class="text-muted">Duration:</span>
+              <span>{{ position.duration_days }} Days</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between px-0">
+              <span class="text-muted">Total Reward Limit (150%):</span>
+              <strong>{{ position.total_reward_cap }} DUSD</strong>
+            </li>
+            <li class="list-group-item d-flex justify-content-between px-0">
+              <span class="text-muted">Expiry Date:</span>
+              <span>{{ position.expiry_date }}</span>
+            </li>
+          </ul>
+
+          <div class="mt-4">
+            <div class="d-flex justify-content-between small fw-bold mb-1">
+              <span>Maturity Progress:</span>
+              <span>{{ progress_pct }}%</span>
+            </div>
+            <div class="progress" style="height: 10px;">
+              <div class="progress-bar bg-warning" role="progressbar" style="width: {{ progress_pct }}%"></div>
+            </div>
+            <div class="text-muted small mt-1 text-center">
+              {{ position.days_accrued }} / {{ position.duration_days }} days accrued
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Daily Reward Log -->
+    <div class="col-md-8">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-header bg-white py-3">
+          <h6 class="fw-bold mb-0"><i class="bi bi-calendar-check me-2"></i>Daily Reward Distribution History</h6>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 font-monospace small">
+              <thead class="table-light">
+                <tr>
+                  <th>#</th>
+                  <th>Reward Date</th>
+                  <th>Rate Applied</th>
+                  <th>Amount Credited</th>
+                  <th>Idempotency Reference</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for dr in daily_rewards %}
+                <tr>
+                  <td>{{ forloop.counter }}</td>
+                  <td>{{ dr.reward_date }}</td>
+                  <td>{{ dr.rate_applied }}%</td>
+                  <td class="text-success fw-bold">+{{ dr.amount }} DUSD</td>
+                  <td class="text-muted small">{{ dr.idempotency_key }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                  <td colspan="5" class="text-center py-4 text-muted">No daily rewards credited for this position yet.</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

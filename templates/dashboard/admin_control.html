@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+
+{% block title %}Simulation Control Center — Admin{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h3 class="fw-bold mb-1"><i class="bi bi-sliders text-warning me-2"></i>Simulation Control Center</h3>
+      <p class="text-muted mb-0">Staff management interface for triggering simulated daily cycles and approving withdrawals.</p>
+    </div>
+    <div>
+      <span class="badge bg-dark fs-6">Simulated Date: {{ business_date }}</span>
+    </div>
+  </div>
+
+  <!-- Simulation Control Metrics -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-4">
+      <div class="card shadow-sm border-0">
+        <div class="card-body">
+          <span class="text-muted small text-uppercase">Total Demo Deposits</span>
+          <h3 class="fw-bold text-primary mb-0">{{ total_sim_deposits }} DUSD</h3>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card shadow-sm border-0">
+        <div class="card-body">
+          <span class="text-muted small text-uppercase">Total Demo Rewards Distributed</span>
+          <h3 class="fw-bold text-success mb-0">{{ total_sim_rewards }} DUSD</h3>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card shadow-sm border-0">
+        <div class="card-body">
+          <span class="text-muted small text-uppercase">Active Simulated Positions</span>
+          <h3 class="fw-bold text-dark mb-0">{{ total_sim_active_positions }}</h3>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Trigger Daily Reward Engine -->
+  <div class="card shadow-sm border-0 mb-4 border-start border-4 border-warning">
+    <div class="card-body d-flex flex-wrap justify-content-between align-items-center gap-3">
+      <div>
+        <h5 class="fw-bold mb-1"><i class="bi bi-clock-history me-2 text-warning"></i>Trigger Daily Reward Batch</h5>
+        <p class="text-muted small mb-0">
+          Executes the deterministic 2% calculation for all active positions for date: <strong>{{ business_date }}</strong>. Guaranteed idempotent (cannot double-pay).
+        </p>
+      </div>
+      <form method="POST">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="run_daily_rewards">
+        <button type="submit" class="btn btn-warning fw-bold px-4 py-2" onclick="return confirm('Run 2% daily reward distribution for today?');">
+          <i class="bi bi-play-fill me-1"></i>Run Daily Reward Engine
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Pending Simulated Withdrawals -->
+  <div class="card shadow-sm border-0 mb-4">
+    <div class="card-header bg-white py-3">
+      <h5 class="fw-bold mb-0"><i class="bi bi-arrow-up-right-circle me-2"></i>Pending / Approved Simulated Withdrawals</h5>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light small">
+            <tr>
+              <th>ID</th>
+              <th>User</th>
+              <th>Amount</th>
+              <th>Method / Account</th>
+              <th>Status</th>
+              <th>Requested Date</th>
+              <th class="text-end">Simulated Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for wd in pending_withdrawals %}
+            <tr>
+              <td>#{{ wd.id }}</td>
+              <td><strong>{{ wd.user.username }}</strong><br><small class="text-muted">{{ wd.user.email }}</small></td>
+              <td class="fw-bold text-dark">{{ wd.demo_amount }} DUSD</td>
+              <td>
+                <span class="badge bg-secondary">{{ wd.get_method_display }}</span><br>
+                <small class="text-muted font-monospace">{{ wd.account_info }}</small>
+              </td>
+              <td>
+                {% if wd.status == 'PENDING' %}
+                  <span class="badge bg-warning text-dark">Pending</span>
+                {% elif wd.status == 'APPROVED' %}
+                  <span class="badge bg-info text-dark">Approved</span>
+                {% endif %}
+              </td>
+              <td class="text-muted small">{{ wd.created_at|date:"M d, Y H:i" }}</td>
+              <td class="text-end">
+                <div class="btn-group btn-group-sm">
+                  {% if wd.status == 'PENDING' %}
+                  <form method="POST" class="d-inline">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="approve_wd">
+                    <input type="hidden" name="withdrawal_id" value="{{ wd.id }}">
+                    <button type="submit" class="btn btn-outline-success btn-sm">Approve</button>
+                  </form>
+                  {% endif %}
+
+                  <form method="POST" class="d-inline ms-1">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="complete_wd">
+                    <input type="hidden" name="withdrawal_id" value="{{ wd.id }}">
+                    <button type="submit" class="btn btn-success btn-sm" onclick="return confirm('Confirm completing this simulated payout?');">Complete</button>
+                  </form>
+
+                  <form method="POST" class="d-inline ms-1">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="reject_wd">
+                    <input type="hidden" name="withdrawal_id" value="{{ wd.id }}">
+                    <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('Reject this withdrawal and return locked funds to user?');">Reject</button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="7" class="text-center py-4 text-muted">No pending or approved withdrawals awaiting action.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Audit Log Stream -->
+  <div class="card shadow-sm border-0">
+    <div class="card-header bg-white py-3">
+      <h6 class="fw-bold mb-0"><i class="bi bi-shield-check me-2"></i>Security & Financial Audit Trail</h6>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-sm table-hover align-middle mb-0 font-monospace small">
+          <thead class="table-light">
+            <tr>
+              <th>Timestamp</th>
+              <th>Actor</th>
+              <th>Action</th>
+              <th>Resource</th>
+              <th>Details</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for log in recent_audit_logs %}
+            <tr>
+              <td>{{ log.created_at|date:"Y-m-d H:i:s" }}</td>
+              <td>{{ log.actor.username|default:"System" }}</td>
+              <td><span class="badge bg-secondary">{{ log.action }}</span></td>
+              <td>{{ log.resource_type }}:{{ log.resource_id }}</td>
+              <td><small class="text-muted">{{ log.details }}</small></td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="5" class="text-center py-3 text-muted">No audit logs recorded yet.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

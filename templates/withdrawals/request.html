@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}Request Demo Withdrawal — JustBeenPaid Simulator{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-md-6">
+      <div class="card shadow-sm border-0">
+        <div class="card-header bg-dark text-white py-3">
+          <h5 class="fw-bold mb-0"><i class="bi bi-arrow-up-right me-2"></i>Simulated Withdrawal Request</h5>
+        </div>
+        <div class="card-body p-4">
+          <div class="alert alert-secondary small mb-3">
+            <i class="bi bi-shield-lock me-1"></i> When submitted, requested DUSD funds are atomically <strong>locked</strong> in your wallet. If an admin rejects the request, funds are immediately restored to your available balance.
+          </div>
+
+          <div class="d-flex justify-content-between align-items-center mb-3 p-2 bg-light rounded text-dark small fw-bold">
+            <span>Available Demo Balance:</span>
+            <span class="fs-6 text-success">{{ wallet.demo_balance }} DUSD</span>
+          </div>
+
+          <form method="POST">
+            {% csrf_token %}
+            <div class="mb-3">
+              <label for="{{ form.demo_amount.id_for_label }}" class="form-label fw-bold">{{ form.demo_amount.label }}</label>
+              {{ form.demo_amount }}
+              {% if form.demo_amount.errors %}
+                <div class="text-danger small mt-1">{{ form.demo_amount.errors }}</div>
+              {% endif %}
+            </div>
+
+            <div class="mb-3">
+              <label for="{{ form.method.id_for_label }}" class="form-label fw-bold">Simulated Payout Channel</label>
+              {{ form.method }}
+              {% if form.method.errors %}
+                <div class="text-danger small mt-1">{{ form.method.errors }}</div>
+              {% endif %}
+            </div>
+
+            <div class="mb-3">
+              <label for="{{ form.account_info.id_for_label }}" class="form-label fw-bold">{{ form.account_info.label }}</label>
+              {{ form.account_info }}
+              {% if form.account_info.errors %}
+                <div class="text-danger small mt-1">{{ form.account_info.errors }}</div>
+              {% endif %}
+              <div class="form-text">e.g. Test Crypto Address, Simulated Bank IBAN, or Test Paypal</div>
+            </div>
+
+            <div class="mb-4">
+              <label for="{{ form.note.id_for_label }}" class="form-label fw-bold">{{ form.note.label }}</label>
+              {{ form.note }}
+              {% if form.note.errors %}
+                <div class="text-danger small mt-1">{{ form.note.errors }}</div>
+              {% endif %}
+            </div>
+
+            <div class="d-grid gap-2">
+              <button type="submit" class="btn btn-dark fw-bold py-2">
+                <i class="bi bi-lock-fill me-1"></i>Lock Funds & Submit Simulated Request
+              </button>
+              <a href="{% url 'withdrawals:list' %}" class="btn btn-outline-secondary">Back to Withdrawals</a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

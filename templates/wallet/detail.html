@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+
+{% block title %}Demo Wallet & Ledger — JustBeenPaid Simulator{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="row g-4 mb-4">
+    <!-- Wallet Balance Cards -->
+    <div class="col-md-4">
+      <div class="card shadow-sm border-0 bg-primary text-white">
+        <div class="card-body p-4">
+          <span class="text-white-50 text-uppercase small fw-bold">Available Demo Balance</span>
+          <h1 class="fw-bold mb-3 mt-1">{{ wallet.demo_balance }} <span class="fs-5 text-white-50">DUSD</span></h1>
+          
+          <div class="d-flex justify-content-between border-top border-white-50 pt-2 mb-3 small">
+            <span>Locked in Withdrawals:</span>
+            <strong>{{ wallet.demo_locked_balance }} DUSD</strong>
+          </div>
+
+          <div class="d-grid gap-2">
+            <a href="{% url 'wallet:deposit' %}" class="btn btn-warning fw-bold">
+              <i class="bi bi-cash-coin me-1"></i>Add Simulated Credits
+            </a>
+            <a href="{% url 'withdrawals:request' %}" class="btn btn-outline-light">
+              <i class="bi bi-arrow-up-right me-1"></i>Request Demo Withdrawal
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Overall Statistics -->
+    <div class="col-md-8">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-header bg-white py-3">
+          <h5 class="fw-bold mb-0"><i class="bi bi-bar-chart-line me-2 text-primary"></i>Simulated Wallet Lifetime Summary</h5>
+        </div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-sm-6">
+              <div class="p-3 bg-light rounded">
+                <span class="text-muted small text-uppercase">Total Demo Deposits</span>
+                <h4 class="fw-bold text-dark mb-0">{{ wallet.total_deposited }} DUSD</h4>
+              </div>
+            </div>
+            <div class="col-sm-6">
+              <div class="p-3 bg-light rounded">
+                <span class="text-muted small text-uppercase">Total Demo Withdrawals</span>
+                <h4 class="fw-bold text-dark mb-0">{{ wallet.total_withdrawn }} DUSD</h4>
+              </div>
+            </div>
+            <div class="col-sm-6">
+              <div class="p-3 bg-light rounded">
+                <span class="text-muted small text-uppercase">Total Daily Rewards Earned</span>
+                <h4 class="fw-bold text-success mb-0">{{ wallet.total_rewards_earned }} DUSD</h4>
+              </div>
+            </div>
+            <div class="col-sm-6">
+              <div class="p-3 bg-light rounded">
+                <span class="text-muted small text-uppercase">Total Referral Bonuses</span>
+                <h4 class="fw-bold text-info mb-0">{{ wallet.total_referral_earned }} DUSD</h4>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Immutable Transaction Ledger -->
+  <div class="card shadow-sm border-0">
+    <div class="card-header bg-white py-3">
+      <h5 class="fw-bold mb-0"><i class="bi bi-receipt me-2"></i>Double-Entry Demo Transaction Ledger</h5>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0 font-monospace small">
+          <thead class="table-light">
+            <tr>
+              <th>ID</th>
+              <th>Date & Time</th>
+              <th>Type</th>
+              <th>Direction</th>
+              <th>Amount</th>
+              <th>Balance Before</th>
+              <th>Balance After</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for tx in page_obj %}
+            <tr>
+              <td>#{{ tx.id }}</td>
+              <td class="text-nowrap">{{ tx.created_at|date:"Y-m-d H:i:s" }}</td>
+              <td><span class="badge bg-secondary">{{ tx.get_transaction_type_display }}</span></td>
+              <td>
+                {% if tx.direction == 'CREDIT' %}
+                  <span class="text-success fw-bold">CREDIT (+)</span>
+                {% elif tx.direction == 'DEBIT' %}
+                  <span class="text-danger fw-bold">DEBIT (-)</span>
+                {% else %}
+                  <span class="text-muted">HOLD</span>
+                {% endif %}
+              </td>
+              <td class="fw-bold {% if tx.direction == 'CREDIT' %}text-success{% elif tx.direction == 'DEBIT' %}text-danger{% endif %}">
+                {% if tx.direction == 'CREDIT' %}+{% elif tx.direction == 'DEBIT' %}-{% endif %}{{ tx.amount }} DUSD
+              </td>
+              <td>{{ tx.balance_before }} DUSD</td>
+              <td class="fw-bold">{{ tx.balance_after }} DUSD</td>
+              <td class="text-muted">{{ tx.description }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="8" class="text-center py-4 text-muted">No transactions in ledger.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+    <div class="card-footer bg-white d-flex justify-content-center">
+      <nav>
+        <ul class="pagination pagination-sm mb-0">
+          {% if page_obj.has_previous %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">&laquo; Previous</a></li>
+          {% endif %}
+          <li class="page-item disabled"><span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span></li>
+          {% if page_obj.has_next %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Next &raquo;</a></li>
+          {% endif %}
+        </ul>
+      </nav>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

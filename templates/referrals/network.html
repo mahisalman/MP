@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+
+{% block title %}Simulated Referral Network — JustBeenPaid Simulator{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h3 class="fw-bold mb-1"><i class="bi bi-people text-info me-2"></i>Simulated 2-Level Referral Network</h3>
+      <p class="text-muted mb-0">Earn simulated demo bonuses whenever your invited partners allocate positions (Level 1: 5%, Level 2: 2%).</p>
+    </div>
+  </div>
+
+  <div class="row g-4 mb-4">
+    <!-- Referral Info & Link Box -->
+    <div class="col-md-5">
+      <div class="card shadow-sm border-0 bg-light mb-4">
+        <div class="card-body p-4">
+          <h5 class="fw-bold mb-3"><i class="bi bi-share me-2 text-primary"></i>Your Demo Invite Code</h5>
+          
+          <div class="mb-3">
+            <span class="text-muted small d-block mb-1">Referral Code</span>
+            <div class="d-flex align-items-center gap-2">
+              <span class="badge bg-dark fs-5 px-3 py-2">{{ user.referral_code }}</span>
+              <button class="btn btn-outline-dark btn-sm" onclick="navigator.clipboard.writeText('{{ user.referral_code }}'); alert('Code copied!');">
+                <i class="bi bi-clipboard"></i> Copy
+              </button>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <span class="text-muted small d-block mb-1">Referral Registration Link</span>
+            <div class="input-group">
+              <input type="text" class="form-control" value="{{ ref_url }}" readonly>
+              <button class="btn btn-primary" onclick="navigator.clipboard.writeText('{{ ref_url }}'); alert('Link copied!');">
+                <i class="bi bi-clipboard"></i>
+              </button>
+            </div>
+          </div>
+
+          <hr>
+          <div class="d-flex justify-content-between text-muted small">
+            <span>Level 1 Demo Commission:</span>
+            <strong class="text-success">5.00%</strong>
+          </div>
+          <div class="d-flex justify-content-between text-muted small mt-1">
+            <span>Level 2 Demo Commission:</span>
+            <strong class="text-success">2.00%</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sponsor Info -->
+      <div class="card shadow-sm border-0">
+        <div class="card-body">
+          <h6 class="fw-bold mb-2 text-muted text-uppercase small">Your Direct Sponsor</h6>
+          {% if user.referred_by %}
+            <div class="d-flex align-items-center gap-3">
+              <i class="bi bi-person-circle fs-2 text-primary"></i>
+              <div>
+                <strong>{{ user.referred_by.username }}</strong>
+                <div class="text-muted small">{{ user.referred_by.email }}</div>
+              </div>
+            </div>
+          {% else %}
+            <p class="text-muted small mb-0">You registered directly without an invitation sponsor.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Referral Stats & Downlines -->
+    <div class="col-md-7">
+      <div class="row g-3 mb-4">
+        <div class="col-sm-6">
+          <div class="card shadow-sm border-0 bg-white">
+            <div class="card-body">
+              <span class="text-muted small text-uppercase">Level 1 Partners</span>
+              <h3 class="fw-bold text-primary mb-0">{{ level_1_refs.count }}</h3>
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-6">
+          <div class="card shadow-sm border-0 bg-white">
+            <div class="card-body">
+              <span class="text-muted small text-uppercase">Level 2 Partners</span>
+              <h3 class="fw-bold text-info mb-0">{{ level_2_refs.count }}</h3>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Downline List -->
+      <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-white py-3">
+          <h6 class="fw-bold mb-0"><i class="bi bi-diagram-3 me-2"></i>Your Downline Network</h6>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 small">
+              <thead class="table-light">
+                <tr>
+                  <th>Partner</th>
+                  <th>Level</th>
+                  <th>Joined Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for ref in level_1_refs %}
+                <tr>
+                  <td><strong>{{ ref.referred_user.username }}</strong></td>
+                  <td><span class="badge bg-primary">Level 1 (5%)</span></td>
+                  <td class="text-muted">{{ ref.created_at|date:"M d, Y" }}</td>
+                </tr>
+                {% endfor %}
+                {% for ref in level_2_refs %}
+                <tr>
+                  <td><strong>{{ ref.referred_user.username }}</strong></td>
+                  <td><span class="badge bg-info text-dark">Level 2 (2%)</span></td>
+                  <td class="text-muted">{{ ref.created_at|date:"M d, Y" }}</td>
+                </tr>
+                {% endfor %}
+                {% if not level_1_refs and not level_2_refs %}
+                <tr>
+                  <td colspan="3" class="text-center py-4 text-muted">No partners registered under your code yet.</td>
+                </tr>
+                {% endif %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Referral Rewards History -->
+      <div class="card shadow-sm border-0">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+          <h6 class="fw-bold mb-0"><i class="bi bi-gift me-2"></i>Simulated Referral Bonus History</h6>
+          <span class="badge bg-success-subtle text-success fs-6">Total: {{ total_earned }} DUSD</span>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 font-monospace small">
+              <thead class="table-light">
+                <tr>
+                  <th>From User</th>
+                  <th>Level</th>
+                  <th>Rate</th>
+                  <th>Bonus Credited</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for rew in rewards %}
+                <tr>
+                  <td>{{ rew.referred_user.username }}</td>
+                  <td>L{{ rew.level }}</td>
+                  <td>{{ rew.rate_applied }}%</td>
+                  <td class="text-success fw-bold">+{{ rew.demo_amount }} DUSD</td>
+                  <td class="text-muted">{{ rew.created_at|date:"M d, H:i" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                  <td colspan="5" class="text-center py-3 text-muted">No referral rewards accrued yet.</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}Allocate Position — JustBeenPaid Simulator{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-md-7 col-lg-6">
+      <div class="card shadow-sm border-0">
+        <div class="card-header bg-dark text-white py-3 border-bottom border-warning">
+          <h5 class="fw-bold mb-0 text-warning"><i class="bi bi-pie-chart-fill me-2"></i>Allocate 2% × 75-Day Demo Position</h5>
+        </div>
+        <div class="card-body p-4">
+          <!-- Simulation Parameter Breakdown -->
+          <div class="bg-light p-3 rounded mb-4 border">
+            <h6 class="fw-bold mb-2"><i class="bi bi-calculator me-1 text-primary"></i>Deterministic 2% Math Rules:</h6>
+            <ul class="small mb-0 ps-3 text-muted">
+              <li><strong>Daily Rate:</strong> 2% non-compounding (<span class="text-dark">daily_amount = demo_amount &times; 0.02</span>)</li>
+              <li><strong>Duration:</strong> Exactly 75 days</li>
+              <li><strong>Total Reward Cap:</strong> 150% of allocated principal (e.g. 100 DUSD yields 150 DUSD total rewards)</li>
+              <li><strong>Referral Reward:</strong> Level 1 gets 5%, Level 2 gets 2% demo bonus immediately.</li>
+            </ul>
+          </div>
+
+          <div class="d-flex justify-content-between align-items-center mb-3 p-2 bg-warning-subtle rounded text-dark small fw-bold">
+            <span>Available Demo Balance:</span>
+            <span class="fs-6 text-dark">{{ wallet.demo_balance }} DUSD</span>
+          </div>
+
+          <form method="POST">
+            {% csrf_token %}
+            <div class="mb-3">
+              <label for="{{ form.plan.id_for_label }}" class="form-label fw-bold">Simulation Reward Plan</label>
+              {{ form.plan }}
+              {% if form.plan.errors %}
+                <div class="text-danger small mt-1">{{ form.plan.errors }}</div>
+              {% endif %}
+            </div>
+
+            <div class="mb-4">
+              <label for="{{ form.demo_amount.id_for_label }}" class="form-label fw-bold">Allocation Amount (DUSD)</label>
+              {{ form.demo_amount }}
+              {% if form.demo_amount.errors %}
+                <div class="text-danger small mt-1">{{ form.demo_amount.errors }}</div>
+              {% endif %}
+              <div class="form-text">Enter between 10.00 and 10,000.00 DUSD.</div>
+            </div>
+
+            <div class="d-grid gap-2">
+              <button type="submit" class="btn btn-warning fw-bold py-2">
+                <i class="bi bi-check2-circle me-1"></i>Confirm & Allocate Demo Position
+              </button>
+              <a href="{% url 'rewards:positions' %}" class="btn btn-outline-secondary">Back to Positions</a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

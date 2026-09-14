@@ -6,6 +6,8 @@ and the EmailVerificationCode model for secure 6-digit email authentication.
 """
 
 import re
+import secrets
+import string
 from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.utils import timezone
@@ -129,6 +131,24 @@ class User(AbstractUser):
         default=False,
         help_text="Designates whether this user should be treated as active.",
     )
+    referral_code = models.CharField(
+        verbose_name="Referral Code",
+        max_length=12,
+        unique=True,
+        null=True,
+        blank=True,
+        db_index=True,
+        help_text="Unique affiliate/referral code.",
+    )
+    referred_by = models.ForeignKey(
+        "self",
+        verbose_name="Referred By",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="direct_referrals",
+        help_text="The sponsor who referred this user.",
+    )
     updated_at = models.DateTimeField(
         verbose_name="Last Updated",
         auto_now=True,
@@ -146,6 +166,7 @@ class User(AbstractUser):
         indexes = [
             models.Index(fields=["email"], name="idx_user_email"),
             models.Index(fields=["mobile_number"], name="idx_user_mobile"),
+            models.Index(fields=["referral_code"], name="idx_user_ref_code"),
         ]
 
     def __str__(self):
@@ -160,8 +181,7 @@ class User(AbstractUser):
 
     def save(self, *args, **kwargs):
         """
-        Guarantees that a valid, unique username is generated from the user's email
-        if username is missing or empty.
+        Guarantees that a valid, unique username and unique referral_code are generated.
         """
         if not self.username:
             if self.email:
@@ -183,6 +203,14 @@ class User(AbstractUser):
                     queryset = queryset.exclude(pk=self.pk)
 
             self.username = candidate
+
+        if not self.referral_code:
+            alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+            while True:
+                code = "".join(secrets.choice(alphabet) for _ in range(8))
+                if not User.objects.filter(referral_code=code).exists():
+                    self.referral_code = code
+                    break
 
         super().save(*args, **kwargs)
 

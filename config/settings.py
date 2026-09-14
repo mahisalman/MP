@@ -30,6 +30,8 @@ ALLOWED_HOSTS = [
 ]
 
 
+from decimal import Decimal
+
 # Application definition
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -38,8 +40,14 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    # Local Apps
+    # Local Modular Apps
     "accounts.apps.AccountsConfig",
+    "wallet.apps.WalletConfig",
+    "rewards.apps.RewardsConfig",
+    "referrals.apps.ReferralsConfig",
+    "withdrawals.apps.WithdrawalsConfig",
+    "dashboard.apps.DashboardConfig",
+    "audit.apps.AuditConfig",
 ]
 
 MIDDLEWARE = [
@@ -171,6 +179,24 @@ EMAIL_USE_SSL = os.environ.get("EMAIL_USE_SSL", "False").strip().lower() in ("tr
 DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "Django Auth <no-reply@example.com>")
 
 
+# ==============================================================================
+# DEMO & SIMULATION PLATFORM SETTINGS
+# ==============================================================================
+DEMO_MODE = os.environ.get("DEMO_MODE", "True").strip().lower() in ("true", "1", "t", "yes")
+SIMULATION_MODE = os.environ.get("SIMULATION_MODE", "True").strip().lower() in ("true", "1", "t", "yes")
+CURRENCY_CODE = "DUSD"
+
+# Position & Plan limits
+MIN_POSITION_AMOUNT = Decimal("10.00")
+MAX_POSITION_AMOUNT = Decimal("10000.00")
+MAX_ACTIVE_POSITIONS = 10
+
+# Referral Configuration (2-Level simulation)
+MAX_REFERRAL_LEVELS = 2
+REFERRAL_LEVEL_1_RATE = Decimal("0.05")  # 5% Level 1
+REFERRAL_LEVEL_2_RATE = Decimal("0.02")  # 2% Level 2
+
+
 # Production Security Headers (Active when DEBUG=False)
 if not DEBUG:
     CSRF_COOKIE_SECURE = True
@@ -202,6 +228,31 @@ LOGGING = {
     },
     "loggers": {
         "accounts": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        "wallet": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        "rewards": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        "referrals": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        "withdrawals": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        "audit": {
             "handlers": ["console"],
             "level": "INFO",
             "propagate": False,

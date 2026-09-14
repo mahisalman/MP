@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block title %}Simulated Withdrawals — JustBeenPaid Simulator{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h3 class="fw-bold mb-1"><i class="bi bi-arrow-up-right-circle text-dark me-2"></i>Simulated Withdrawal Requests</h3>
+      <p class="text-muted mb-0">Test the fund locking, administrative review, and simulated payout execution flow.</p>
+    </div>
+    <a href="{% url 'withdrawals:request' %}" class="btn btn-dark fw-bold">
+      <i class="bi bi-plus-circle me-1"></i>New Demo Withdrawal
+    </a>
+  </div>
+
+  <div class="row g-3 mb-4">
+    <div class="col-md-6">
+      <div class="card shadow-sm border-0">
+        <div class="card-body">
+          <span class="text-muted small text-uppercase">Available Demo Balance</span>
+          <h3 class="fw-bold text-success mb-0">{{ wallet.demo_balance }} DUSD</h3>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card shadow-sm border-0">
+        <div class="card-body">
+          <span class="text-muted small text-uppercase">Currently Locked in Pending Withdrawals</span>
+          <h3 class="fw-bold text-warning mb-0">{{ wallet.demo_locked_balance }} DUSD</h3>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card shadow-sm border-0">
+    <div class="card-header bg-white py-3">
+      <h5 class="fw-bold mb-0">Withdrawal Request History</h5>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0 small">
+          <thead class="table-light">
+            <tr>
+              <th>ID</th>
+              <th>Simulated Amount</th>
+              <th>Method</th>
+              <th>Simulated Address / Note</th>
+              <th>Status</th>
+              <th>Requested At</th>
+              <th>Simulated Reference</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for wd in page_obj %}
+            <tr>
+              <td><strong>#{{ wd.id }}</strong></td>
+              <td class="fw-bold">{{ wd.demo_amount }} DUSD</td>
+              <td><span class="badge bg-secondary">{{ wd.get_method_display }}</span></td>
+              <td>
+                <span class="font-monospace text-dark">{{ wd.account_info }}</span>
+                {% if wd.rejection_reason %}
+                  <div class="text-danger small mt-1">Reason: {{ wd.rejection_reason }}</div>
+                {% endif %}
+              </td>
+              <td>
+                {% if wd.status == 'PENDING' %}
+                  <span class="badge bg-warning text-dark"><i class="bi bi-hourglass-split me-1"></i>Pending Review</span>
+                {% elif wd.status == 'APPROVED' %}
+                  <span class="badge bg-info text-dark"><i class="bi bi-check me-1"></i>Approved</span>
+                {% elif wd.status == 'COMPLETED' %}
+                  <span class="badge bg-success"><i class="bi bi-check2-all me-1"></i>Completed</span>
+                {% elif wd.status == 'REJECTED' %}
+                  <span class="badge bg-danger"><i class="bi bi-x-circle me-1"></i>Rejected & Unlocked</span>
+                {% endif %}
+              </td>
+              <td class="text-muted">{{ wd.created_at|date:"M d, Y H:i" }}</td>
+              <td class="font-monospace text-muted">{{ wd.simulated_tx_ref|default:"-" }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="7" class="text-center py-5 text-muted">
+                No simulated withdrawals submitted yet.<br>
+                <a href="{% url 'withdrawals:request' %}" class="btn btn-outline-dark btn-sm mt-3">Submit Simulated Withdrawal</a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    {% if page_obj.has_other_pages %}
+    <div class="card-footer bg-white d-flex justify-content-center">
+      <nav>
+        <ul class="pagination pagination-sm mb-0">
+          {% if page_obj.has_previous %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">&laquo; Previous</a></li>
+          {% endif %}
+          <li class="page-item disabled"><span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span></li>
+          {% if page_obj.has_next %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Next &raquo;</a></li>
+          {% endif %}
+        </ul>
+      </nav>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

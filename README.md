@@ -1,281 +1,143 @@
-# Django Authentication & Profile Management System with MySQL
+# JustBeenPaid-Style 2% × 75-Day Simulation Platform (v2.0.0)
 
-A clean, secure, maintainable, and modular **Django 5 web application** with **MySQL** database support, featuring a custom user model, 6-digit email code verification, password reset, education background tracking, and responsive **Bootstrap 5** frontend.
+[![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)](https://github.com/mahisalman/MP)
+[![Django](https://img.shields.io/badge/Django-5.x%20%2F%204.2-brightgreen.svg)](https://www.djangoproject.com/)
+[![Database](https://img.shields.io/badge/Database-MySQL%20%7C%20SQLite%20Fallback-orange.svg)](https://www.mysql.com/)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
----
-
-## Features Overview
-
-- **Custom User Model**: Inherits from Django's `AbstractUser`, utilizing **Email** as the unique login identifier.
-- **Academic & Educational Background**: Tracks highest qualification (`SSC`, `HSC`, `Diploma`, `Bachelor's`, `Master's`, `MPhil`, `PhD`, `Other`), institution, major/subject, and passing year.
-- **Bangladesh Mobile Number Validation**: Validates and standardizes BD phone formats (`01712345678`, `+8801712345678`).
-- **Cryptographic 6-Digit Email Verification**:
-  - Secure random 6-digit generation using Python's `secrets` module.
-  - Never stored in plain-text: hashed with HMAC-SHA256 using Django's secret key.
-  - Configurable expiration (default 10 minutes).
-  - Maximum attempt limiter (default 5 attempts) to prevent brute force.
-  - Configurable resend cooldown (default 45 seconds) with interactive JavaScript countdown.
-  - Invalidates old codes automatically.
-- **Authentication & Security**:
-  - Email + Password login.
-  - "Remember Me" session persistence (2 weeks vs browser close).
-  - Generic error messages to prevent email/account enumeration.
-  - Blocks unverified users and routes them to verification.
-  - Session protection, CSRF protection, and production security headers.
-- **User Dashboard & Profile**:
-  - Overview dashboard.
-  - Full personal and academic profile view.
-  - Profile edit form (strictly protects email and administrative flags).
-  - In-app password change with session preservation.
-- **Password Reset**:
-  - Full single-use token password reset flow via email.
-  - Generic confirmation prevents user enumeration.
-- **Django Admin**:
-  - Custom user admin with filters, search, and fieldsets.
-  - Read-only audit log for verification code requests.
+> [!IMPORTANT]
+> **CRITICAL BUSINESS & SAFETY NOTICE — DEMO / SIMULATION SYSTEM ONLY**
+>
+> This platform is strictly an **educational simulation and test harness**.
+> All balances, calculations, and flows use **virtual test credits (DUSD)**.
+> - **NO REAL MONEY** is accepted, stored, or processed.
+> - **NO CONNECTION** exists to real payment processors, banking networks, or blockchains.
+> - **NO FINANCIAL RETURNS** are promised; the 2% daily calculation is purely a mathematical simulation.
+> - Global safety kill-switch: `DEMO_MODE = True`. Prominent demo warning banners are rendered across all financial pages.
 
 ---
 
-## Project Structure
+## 🚀 What's New in Version 2.0.0
+
+Version `2.0.0` introduces a complete, production-grade simulation architecture replicating JustBeenPaid-style daily reward and multi-tier referral dynamics with mathematical precision, row locking, and append-only financial accounting:
+
+1. **Deterministic 2% × 75-Day Daily Reward Engine**:
+   - Non-compounding linear formula: $\text{daily\_reward} = \text{original\_demo\_amount} \times 0.02$.
+   - Position cap at 150% (75 days): 100 DUSD allocated yields exactly 2.00 DUSD/day for 75 days (150 DUSD lifetime cap).
+   - Once cap/duration is reached, position automatically marks `COMPLETED`.
+
+2. **Strict Idempotency & Database Locks**:
+   - Unique database constraint on `(position, reward_date)` prevents duplicate payments.
+   - All balance changes execute within atomic transactions with `select_for_update()` row locking.
+   - Unique idempotency keys on every transaction.
+
+3. **Double-Entry Append-Only Demo Ledger**:
+   - Every balance movement generates an immutable record with before/after balances.
+   - Every description is strictly prefixed with `[DEMO]`.
+
+4. **2-Level Downline Referral Simulation**:
+   - **Level 1**: 5% demo bonus credited immediately to direct sponsor upon position allocation.
+   - **Level 2**: 2% demo bonus credited to second-tier sponsor.
+   - Auto-generated 8-character unique referral codes (`User.referral_code`) with shareable links (`/register/?ref=CODE`).
+
+5. **Simulated Withdrawal Workflow**:
+   - User submits request $\rightarrow$ Funds are **locked** in wallet (`locked_balance`).
+   - Admin approves $\rightarrow$ moves to `APPROVED`.
+   - Admin rejects $\rightarrow$ locked funds immediately **revert** to available balance.
+   - Admin completes $\rightarrow$ locked funds permanently deducted with simulated transaction reference.
+
+6. **Interactive Staff Control Panel & CLI Management Suite**:
+   - Web UI at `/dashboard/admin-control/` for staff to trigger daily reward batches, approve/reject withdrawals, and view live audit trails.
+   - Comprehensive CLI commands:
+     - `python manage.py process_daily_rewards [--date YYYY-MM-DD]`
+     - `python manage.py seed_demo_data`
+     - `python manage.py reconcile_wallets`
+     - `python manage.py reconcile_rewards`
+     - `python manage.py reset_demo_data --confirm`
+
+---
+
+## 🏗️ Architecture & Modules
 
 ```text
 django_auth_app/
 │
-├── manage.py
-├── requirements.txt
-├── .env
-├── .env.example
-├── .gitignore
-├── README.md
+├── accounts/           # User authentication, HMAC 6-digit email verification, profile
+├── wallet/             # Demo wallet balances (available/locked), double-entry audit ledger
+├── rewards/            # 2% x 75-day simulation engine, positions portfolio, daily distributions
+├── referrals/          # Sponsor linking, 2-tier tree (5% L1, 2% L2), bonus distributions
+├── withdrawals/        # Simulated fund locking, admin review, rejection refunds, completion
+├── dashboard/          # User summary portal, staff simulation control panel
+├── audit/              # Immutable audit trail for all security and financial events
 │
-├── config/
-│   ├── __init__.py           # Registers PyMySQL as MySQLdb driver
-│   ├── settings.py           # Core settings, MySQL config, security policies
-│   ├── urls.py               # Main URL router
-│   ├── wsgi.py
-│   └── asgi.py
-│
-├── accounts/
-│   ├── migrations/
-│   │   └── 0001_initial.py
-│   ├── templates/
-│   │   └── accounts/
-│   │       ├── emails/
-│   │       │   ├── verification_email.html
-│   │       │   ├── verification_email.txt
-│   │       │   ├── password_reset_email.html
-│   │       │   ├── password_reset_email.txt
-│   │       │   └── password_reset_subject.txt
-│   │       ├── register.html
-│   │       ├── verify_email.html
-│   │       ├── login.html
-│   │       ├── dashboard.html
-│   │       ├── profile.html
-│   │       ├── edit_profile.html
-│   │       ├── change_password.html
-│   │       ├── forgot_password.html
-│   │       ├── forgot_password_done.html
-│   │       ├── reset_password.html
-│   │       └── reset_password_complete.html
-│   │
-│   ├── admin.py              # Custom UserAdmin and EmailVerificationCodeAdmin
-│   ├── apps.py
-│   ├── forms.py              # Registration, Login, Verification & Profile forms
-│   ├── models.py             # User & EmailVerificationCode models
-│   ├── services.py           # Business logic, email dispatch & code validation
-│   ├── tests.py              # 22 comprehensive automated tests
-│   ├── urls.py               # Clean URLs for accounts app
-│   └── views.py              # Thin view handlers
-│
-├── templates/
-│   ├── base.html             # Responsive Bootstrap 5 layout & navbar
-│   ├── home.html             # Landing page
-│   └── includes/
-│       └── messages.html     # Dismissible Bootstrap alert banners
-│
-└── static/
-    ├── css/
-    │   └── style.css         # Modern styling & code input formatting
-    └── js/
-        └── main.js           # Resend countdown timer & digit auto-formatting
+├── templates/          # Bootstrap 5 responsive templates with demo badges
+├── config/             # Django settings, security middleware, database fallback
+└── manage.py
 ```
 
 ---
 
-## Installation & Setup
+## ⚡ Quick Start Guide
 
 ### 1. Prerequisites
-- **Python 3.10+** (Tested on Python 3.13)
-- **MySQL 8.x** or **MariaDB**
-- `pip` package manager
+- Python 3.10+ (tested on Python 3.13)
+- MySQL Server (optional: defaults to SQLite fallback if MySQL is offline)
 
-### 2. Clone or Navigate to Project
-```powershell
-cd C:\Users\MAHI-IT\.gemini\antigravity\scratch\django_auth_app
-```
-
-### 3. Create & Activate Virtual Environment
-On Windows:
-```powershell
-python -m venv venv
-.\venv\Scripts\Activate.ps1
-```
-On Linux/macOS:
+### 2. Setup Environment
 ```bash
-python3 -m venv venv
-source venv/bin/activate
-```
-
-### 4. Install Dependencies
-```powershell
+git clone https://github.com/mahisalman/MP.git
+cd MP
 pip install -r requirements.txt
 ```
-*(Note: `PyMySQL` is installed to ensure cross-platform MySQL connectivity without requiring separate C-compilers).*
 
----
-
-## Database Configuration
-
-### 1. Create the MySQL Database
-Log into MySQL CLI or MySQL Workbench:
-```sql
-CREATE DATABASE django_auth_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-```
-
-### 2. Configure `.env`
-Copy `.env.example` to `.env` (if not already done) and adjust your credentials:
+### 3. Configure Database (`.env`)
 ```ini
-SECRET_KEY=your-secure-secret-key-for-django
+SECRET_KEY=your-secure-secret-key
 DEBUG=True
-ALLOWED_HOSTS=localhost,127.0.0.1
-
-# MySQL Configuration
-DB_ENGINE=django.db.backends.mysql
-DB_NAME=django_auth_db
-DB_USER=root
-DB_PASSWORD=your_actual_mysql_password
-DB_HOST=127.0.0.1
-DB_PORT=3306
-
-# Set to False once your MySQL service is running
-USE_SQLITE_FALLBACK=False
-
-# Email Configuration
-EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend
-EMAIL_HOST=smtp.gmail.com
-EMAIL_PORT=587
-EMAIL_HOST_USER=
-EMAIL_HOST_PASSWORD=
-EMAIL_USE_TLS=True
-EMAIL_USE_SSL=False
-DEFAULT_FROM_EMAIL="Django Auth Portal <no-reply@example.com>"
-
-# Security & Verification Code Limits
-VERIFICATION_CODE_EXPIRY_MINUTES=10
-VERIFICATION_CODE_RESEND_COOLDOWN_SECONDS=45
-VERIFICATION_CODE_MAX_ATTEMPTS=5
+DEMO_MODE=True
+USE_SQLITE_FALLBACK=True
 ```
 
----
-
-## Database Migrations & Initial Setup
-
-### 1. Run Migrations
-```powershell
-python manage.py makemigrations
+### 4. Run Migrations & Seed Demo Data
+```bash
 python manage.py migrate
+python manage.py seed_demo_data
 ```
 
-### 2. Create Superuser (Admin)
-```powershell
-python manage.py createsuperuser
-```
-Follow the interactive prompt (enter email, full name, mobile number, and admin password).
+This automatically configures:
+- Default 2% / 75-day simulation plan
+- Standard 5% L1 / 2% L2 referral plan
+- Demo user accounts (`alice_demo`, `bob_demo`, `charlie_demo` with password `DemoPass123!`)
+- 1,000 DUSD simulated credits in each wallet
+- A sample 100 DUSD position for Charlie with 5% referral bonus to Bob and 2% to Alice.
 
-### 3. Run Development Server
-```powershell
-python manage.py runserver
+### 5. Run the Local Server
+```bash
+python manage.py runserver 127.0.0.1:8000
 ```
-
-Open your browser and navigate to:
-- **Application**: [http://127.0.0.1:8000/](http://127.0.0.1:8000/)
-- **Admin Panel**: [http://127.0.0.1:8000/admin/](http://127.0.0.1:8000/admin/)
+- **Portal**: [http://127.0.0.1:8000/](http://127.0.0.1:8000/)
+- **Dashboard**: [http://127.0.0.1:8000/dashboard/](http://127.0.0.1:8000/dashboard/)
+- **Admin Control Panel**: [http://127.0.0.1:8000/dashboard/admin-control/](http://127.0.0.1:8000/dashboard/admin-control/)
+- **Django Admin**: [http://127.0.0.1:8000/admin/](http://127.0.0.1:8000/admin/)
 
 ---
 
-## How Email Verification Works in Development
+## 🧪 Automated Testing
 
-During local development, `EMAIL_BACKEND` is set to `django.core.mail.backends.console.EmailBackend`.
-
-1. When you register a new account or request a password reset, **the email is printed directly to your console/terminal** where `runserver` is running.
-2. Locate the 6-digit verification code in the terminal output:
-   ```text
-   Your 6-digit email verification code is:
-   583214
-   ```
-3. Type `583214` into the verification screen in your browser and click **Verify Email**.
-
----
-
-## Configuring Real Email Delivery (SMTP)
-
-To send real emails (e.g. using Gmail SMTP or Amazon SES):
-
-1. In `.env`, change:
-   ```ini
-   EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
-   EMAIL_HOST=smtp.gmail.com
-   EMAIL_PORT=587
-   EMAIL_USE_TLS=True
-   EMAIL_HOST_USER=your_email@gmail.com
-   EMAIL_HOST_PASSWORD=your_16_character_app_password
-   DEFAULT_FROM_EMAIL="Your App Name <your_email@gmail.com>"
-   ```
-2. For Gmail, enable 2-Factor Authentication on your Google account and generate an **App Password** from Google Account Security.
-
----
-
-## Running Automated Tests
-
-Run the complete test suite:
-```powershell
-python manage.py test accounts
-```
-Expected output:
-```text
-Ran 22 tests in 16.004s
-
-OK
+To run the automated verification suite covering all mandatory business scenarios:
+```bash
+python manage.py test rewards
 ```
 
-The test suite covers:
-- User registration (valid data, duplicate email/phone, invalid phone, DOB limits, password mismatch).
-- 6-digit verification (valid code, wrong code, expired code, max attempts lockout, resend cooldown).
-- Authentication (login with email, wrong password, unverified user blocked, remember me session, logout).
-- Profile (view profile, update fields, security protections for immutable fields).
-- Password reset (email link generation, enumeration prevention, valid password change).
+Test coverage includes:
+- **Scenario 1**: Exact 2% non-compounding calculation over 75 days reaching 150% cap.
+- **Scenario 2**: Idempotency and duplicate credit prevention on repeated runs.
+- **Scenario 3**: Two-level referral calculations (5% L1, 2% L2).
+- **Scenario 4**: Simulated withdrawal fund locking, rejection reversal, and completion.
 
 ---
 
-## Production Readiness Checklist
+## 🛡️ Versioning & History
 
-When deploying to a production environment (Linux VPS, Nginx, Gunicorn, MySQL):
-
-1. **Environment Variables**:
-   - Set `DEBUG=False`.
-   - Provide a long, cryptographically random `SECRET_KEY`.
-   - Update `ALLOWED_HOSTS=yourdomain.com,www.yourdomain.com`.
-2. **Database**:
-   - Ensure MySQL database uses `utf8mb4`.
-   - Set `USE_SQLITE_FALLBACK=False`.
-3. **Security Headers**:
-   - When `DEBUG=False`, Django automatically activates secure session cookies, secure CSRF cookies, XSS filtering, and strict X-Frame-Options.
-   - Configure HTTPS with Let's Encrypt (Certbot) on Nginx.
-4. **Static Files**:
-   ```bash
-   python manage.py collectstatic --noinput
-   ```
-5. **WSGI Server**:
-   ```bash
-   gunicorn --workers 3 --bind 127.0.0.1:8000 config.wsgi:application
-   ```
+- **v1.0.0**: Clean Django authentication portal with custom user model, HMAC-SHA256 6-digit email code verification, password reset, and profile management. (Preserved in branch `release/v1.0.0` and Git tag `v1.0.0`).
+- **v2.0.0**: Complete JustBeenPaid-style 2% × 75-day demo simulation platform with 2-level referral network and withdrawal simulator.

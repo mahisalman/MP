@@ -64,6 +64,15 @@ def register_view(request):
             user.set_password(form.cleaned_data["password"])
             user.save()
 
+            # Process optional referral code
+            ref_code = form.cleaned_data.get("referral_code")
+            if ref_code:
+                try:
+                    from referrals.services import link_referral
+                    link_referral(user, ref_code)
+                except Exception as e:
+                    logger.error(f"Error linking referral code {ref_code} for user {user.id}: {e}")
+
             # Store pending verification user id in session
             request.session["pending_verification_user_id"] = user.id
 
@@ -77,7 +86,11 @@ def register_view(request):
             logger.info("New registration initialized for user id=%s (email=%s)", user.id, user.email)
             return redirect("verify_email")
     else:
-        form = UserRegistrationForm()
+        initial_data = {}
+        ref_from_query = request.GET.get('ref')
+        if ref_from_query:
+            initial_data['referral_code'] = ref_from_query.strip().upper()
+        form = UserRegistrationForm(initial=initial_data)
 
     return render(request, "accounts/register.html", {"form": form})
 
@@ -228,8 +241,8 @@ def logout_view(request):
 
 @login_required
 def dashboard_view(request):
-    """Dashboard homepage for authenticated users."""
-    return render(request, "accounts/dashboard.html", {"user": request.user})
+    """Redirects to the simulation dashboard homepage."""
+    return redirect("dashboard:home")
 
 
 @login_required

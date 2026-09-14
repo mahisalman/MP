@@ -50,6 +50,13 @@ class UserRegistrationForm(forms.ModelForm):
         widget=forms.PasswordInput(attrs={"class": "form-control", "placeholder": "Confirm your password"}),
     )
 
+    referral_code = forms.CharField(
+        label="Referral Code (Optional)",
+        required=False,
+        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "Enter sponsor's 8-character code"}),
+        help_text="If you were invited by someone, enter their referral code here."
+    )
+
     class Meta:
         model = User
         fields = [
