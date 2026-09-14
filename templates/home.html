@@ -18,7 +18,7 @@
 
       <div class="d-flex flex-wrap gap-3 justify-content-center justify-content-lg-start">
         {% if user.is_authenticated %}
-          <a href="{% url 'dashboard' %}" class="btn btn-primary btn-lg px-4 gap-3 shadow-sm rounded-pill">
+          <a href="{% url 'dashboard:home' %}" class="btn btn-primary btn-lg px-4 gap-3 shadow-sm rounded-pill">
             <i class="bi bi-speedometer2 me-2"></i>Go to Dashboard
           </a>
           <a href="{% url 'profile' %}" class="btn btn-outline-secondary btn-lg px-4 rounded-pill">

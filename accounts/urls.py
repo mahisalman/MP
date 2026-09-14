@@ -17,7 +17,6 @@ urlpatterns = [
     path("logout/", views.logout_view, name="logout"),
 
     # Dashboard & Profile Management
-    path("dashboard/", views.dashboard_view, name="dashboard"),
     path("profile/", views.profile_view, name="profile"),
     path("profile/edit/", views.edit_profile_view, name="edit_profile"),
     path("change-password/", views.change_password_view, name="change_password"),

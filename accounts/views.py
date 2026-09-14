@@ -53,7 +53,7 @@ def register_view(request):
     dispatches a 6-digit email verification code, and redirects to the verification page.
     """
     if request.user.is_authenticated:
-        return redirect("dashboard")
+        return redirect("dashboard:home")
 
     if request.method == "POST":
         form = UserRegistrationForm(request.POST)
@@ -183,7 +183,7 @@ def login_view(request):
     Verifies email verification status and handles Remember Me.
     """
     if request.user.is_authenticated:
-        return redirect("dashboard")
+        return redirect("dashboard:home")
 
     if request.method == "POST":
         form = EmailLoginForm(request.POST)
@@ -225,7 +225,7 @@ def login_view(request):
                 ):
                     return redirect(redirect_to)
 
-                return redirect("dashboard")
+                return redirect("dashboard:home")
     else:
         form = EmailLoginForm()
 
