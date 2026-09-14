@@ -61,7 +61,7 @@ def allocate_position_view(request):
 
 @login_required
 def position_detail_view(request, position_id):
-    position = get_object_or_404(RewardPosition, id=position_id, user=request.user)
+    position = get_object_or_404(RewardPosition, id=position_id)
     daily_rewards = DailyReward.objects.filter(position=position).order_by('-reward_date')
     
     progress_pct = position.progress_percentage
