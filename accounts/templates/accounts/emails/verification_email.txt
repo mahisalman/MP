@@ -1,0 +1,14 @@
+Hello {{ user.full_name }},
+
+Thank you for registering on Django Auth Portal.
+
+Your 6-digit email verification code is:
+
+{{ verification_code }}
+
+This code is valid for {{ expiry_minutes }} minutes and can only be used once.
+
+If you did not initiate this request, please disregard this email.
+
+Best regards,
+The Django Auth Team

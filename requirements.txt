@@ -1,0 +1,6 @@
+Django>=4.2.0,<6.0.0
+PyMySQL>=1.1.0
+cryptography>=41.0.0
+python-dotenv>=1.0.0
+# mysqlclient is optional if binary C-wheels exist for your platform
+mysqlclient>=2.2.0; sys_platform != 'win32'
