@@ -76,7 +76,7 @@
           <div class="card shadow-sm border-0 bg-white">
             <div class="card-body">
               <span class="text-muted small text-uppercase">Level 1 Partners</span>
-              <h3 class="fw-bold text-primary mb-0">{{ level_1_refs.count }}</h3>
+              <h3 class="fw-bold text-primary mb-0">{{ level_1_users|length }}</h3>
             </div>
           </div>
         </div>
@@ -84,7 +84,7 @@
           <div class="card shadow-sm border-0 bg-white">
             <div class="card-body">
               <span class="text-muted small text-uppercase">Level 2 Partners</span>
-              <h3 class="fw-bold text-info mb-0">{{ level_2_refs.count }}</h3>
+              <h3 class="fw-bold text-info mb-0">{{ level_2_users|length }}</h3>
             </div>
           </div>
         </div>
@@ -106,21 +106,21 @@
                 </tr>
               </thead>
               <tbody>
-                {% for ref in level_1_refs %}
+                {% for u in level_1_users %}
                 <tr>
-                  <td><strong>{{ ref.referred_user.username }}</strong></td>
+                  <td><strong>{{ u.username }}</strong><br><small class="text-muted">{{ u.email }}</small></td>
                   <td><span class="badge bg-primary">Level 1 (5%)</span></td>
-                  <td class="text-muted">{{ ref.created_at|date:"M d, Y" }}</td>
+                  <td class="text-muted">{{ u.date_joined|date:"M d, Y" }}</td>
                 </tr>
                 {% endfor %}
-                {% for ref in level_2_refs %}
+                {% for u in level_2_users %}
                 <tr>
-                  <td><strong>{{ ref.referred_user.username }}</strong></td>
+                  <td><strong>{{ u.username }}</strong><br><small class="text-muted">via {{ u.referred_by.username }}</small></td>
                   <td><span class="badge bg-info text-dark">Level 2 (2%)</span></td>
-                  <td class="text-muted">{{ ref.created_at|date:"M d, Y" }}</td>
+                  <td class="text-muted">{{ u.date_joined|date:"M d, Y" }}</td>
                 </tr>
                 {% endfor %}
-                {% if not level_1_refs and not level_2_refs %}
+                {% if not level_1_users and not level_2_users %}
                 <tr>
                   <td colspan="3" class="text-center py-4 text-muted">No partners registered under your code yet.</td>
                 </tr>
@@ -152,10 +152,10 @@
               <tbody>
                 {% for rew in rewards %}
                 <tr>
-                  <td>{{ rew.referred_user.username }}</td>
+                  <td>{{ rew.source_user.username }}</td>
                   <td>L{{ rew.level }}</td>
-                  <td>{{ rew.rate_applied }}%</td>
-                  <td class="text-success fw-bold">+{{ rew.demo_amount }} DUSD</td>
+                  <td>{% widthratio rew.rate 1 100 %}%</td>
+                  <td class="text-success fw-bold">+{{ rew.reward_amount }} DUSD</td>
                   <td class="text-muted">{{ rew.created_at|date:"M d, H:i" }}</td>
                 </tr>
                 {% empty %}
