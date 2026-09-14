@@ -7,7 +7,7 @@
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
       <h3 class="fw-bold mb-1">Position #{{ position.id }} Overview</h3>
-      <p class="text-muted mb-0">Plan: {{ position.plan.name }} &bull; Allocated on {{ position.created_at|date:"M d, Y" }}</p>
+      <p class="text-muted mb-0">Plan: {{ position.reward_plan.name }} &bull; Allocated on {{ position.created_at|date:"M d, Y" }}</p>
     </div>
     <a href="{% url 'rewards:positions' %}" class="btn btn-outline-secondary">
       &larr; Back to Positions
@@ -38,7 +38,7 @@
             </li>
             <li class="list-group-item d-flex justify-content-between px-0">
               <span class="text-muted">Daily Reward Rate:</span>
-              <strong class="text-success">2.00% / day</strong>
+              <strong class="text-success">{% widthratio position.daily_rate 1 100 %}.00% / day</strong>
             </li>
             <li class="list-group-item d-flex justify-content-between px-0">
               <span class="text-muted">Daily Reward Amount:</span>
@@ -50,11 +50,11 @@
             </li>
             <li class="list-group-item d-flex justify-content-between px-0">
               <span class="text-muted">Total Reward Limit (150%):</span>
-              <strong>{{ position.total_reward_cap }} DUSD</strong>
+              <strong>{{ position.total_reward_limit }} DUSD</strong>
             </li>
             <li class="list-group-item d-flex justify-content-between px-0">
               <span class="text-muted">Expiry Date:</span>
-              <span>{{ position.expiry_date }}</span>
+              <span>{{ position.end_date }}</span>
             </li>
           </ul>
 
@@ -67,7 +67,7 @@
               <div class="progress-bar bg-warning" role="progressbar" style="width: {{ progress_pct }}%"></div>
             </div>
             <div class="text-muted small mt-1 text-center">
-              {{ position.days_accrued }} / {{ position.duration_days }} days accrued
+              {{ position.days_completed }} / {{ position.duration_days }} days accrued (Earned: {{ position.reward_earned }} DUSD)
             </div>
           </div>
         </div>
@@ -89,7 +89,7 @@
                   <th>Reward Date</th>
                   <th>Rate Applied</th>
                   <th>Amount Credited</th>
-                  <th>Idempotency Reference</th>
+                  <th>Status</th>
                 </tr>
               </thead>
               <tbody>
@@ -97,9 +97,9 @@
                 <tr>
                   <td>{{ forloop.counter }}</td>
                   <td>{{ dr.reward_date }}</td>
-                  <td>{{ dr.rate_applied }}%</td>
-                  <td class="text-success fw-bold">+{{ dr.amount }} DUSD</td>
-                  <td class="text-muted small">{{ dr.idempotency_key }}</td>
+                  <td>{% widthratio dr.reward_rate 1 100 %}%</td>
+                  <td class="text-success fw-bold">+{{ dr.reward_amount }} DUSD</td>
+                  <td><span class="badge bg-success-subtle text-success">{{ dr.status }}</span></td>
                 </tr>
                 {% empty %}
                 <tr>

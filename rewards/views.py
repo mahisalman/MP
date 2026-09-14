@@ -64,12 +64,10 @@ def position_detail_view(request, position_id):
     position = get_object_or_404(RewardPosition, id=position_id, user=request.user)
     daily_rewards = DailyReward.objects.filter(position=position).order_by('-reward_date')
     
-    progress_pct = 0
-    if position.total_reward_cap > 0:
-        progress_pct = int((position.total_rewards_credited / position.total_reward_cap) * 100)
+    progress_pct = position.progress_percentage
 
     return render(request, 'rewards/position_detail.html', {
         'position': position,
         'daily_rewards': daily_rewards,
-        'progress_pct': min(progress_pct, 100)
+        'progress_pct': progress_pct
     })

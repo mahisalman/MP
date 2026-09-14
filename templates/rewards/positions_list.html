@@ -63,18 +63,18 @@
             {% for pos in page_obj %}
             <tr>
               <td><strong>#{{ pos.id }}</strong></td>
-              <td>{{ pos.plan.name }}</td>
+              <td>{{ pos.reward_plan.name }}</td>
               <td class="fw-bold">{{ pos.demo_amount }} DUSD</td>
               <td class="text-success fw-bold">+{{ pos.daily_reward_amount }} DUSD / day</td>
               <td>
                 <div class="d-flex align-items-center gap-2">
-                  <span>{{ pos.days_accrued }} / {{ pos.duration_days }}</span>
+                  <span>{{ pos.days_completed }} / {{ pos.duration_days }}</span>
                   <div class="progress flex-grow-1" style="height: 6px; min-width: 60px;">
-                    <div class="progress-bar bg-warning" role="progressbar" style="width: {% widthratio pos.days_accrued pos.duration_days 100 %}%"></div>
+                    <div class="progress-bar bg-warning" role="progressbar" style="width: {{ pos.progress_percentage }}%"></div>
                   </div>
                 </div>
               </td>
-              <td>{{ pos.total_rewards_credited }} / {{ pos.total_reward_cap }} DUSD</td>
+              <td>{{ pos.reward_earned }} / {{ pos.total_reward_limit }} DUSD</td>
               <td>
                 {% if pos.status == 'ACTIVE' %}
                   <span class="badge bg-success">Active</span>
